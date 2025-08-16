@@ -1,16 +1,27 @@
 import "./App.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import AppLayout from "./layouts/AppLayout";
-import Home from "./pages/Home";
+import { lazy, Suspense } from "react";
+const AppLayout = lazy(() => import("./layouts/AppLayout"));
+const Home = lazy(() => import("./pages/Home"));
+const ErrorPage = lazy(() => import("./pages/ErrorPage"));
 
 // creating routes for future usecases
 const router = createBrowserRouter([
   {
-    element: <AppLayout />,
+    element: (
+      <Suspense fallback={<div>Loading layout...</div>}>
+        <AppLayout />
+      </Suspense>
+    ),
+    errorElement: <ErrorPage />,
     children: [
       {
         path: "/",
-        element: <Home />,
+        element: (
+          <Suspense fallback={<div>Loading home...</div>}>
+            <Home />
+          </Suspense>
+        ),
       },
     ],
   },

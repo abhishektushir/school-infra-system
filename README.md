@@ -13,7 +13,6 @@ Built with **TailwindCSS** and **ShadCN UI components**, with clean forms for en
 - **Lucide Icons** – modern SVG icons
 -
 
----
 
 ## How to install
 1. Git Clone
@@ -26,6 +25,5 @@ npm install
 npm run dev
 ```
 # Open http://localhost:5173/
-
 
 
