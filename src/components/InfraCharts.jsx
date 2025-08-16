@@ -16,6 +16,8 @@ import {
 import { COLORS, CONDITION } from "@/constants";
 import { infrastructureItems } from "@/clone-data-config";
 
+const renderPieLabel = ({ name, percent }) =>
+  `${name} ${(percent * 100).toFixed(0)}%`;
 function InfraCharts({ infrastructureStats, overallStats }) {
   const chartData = infrastructureItems.map((item) => ({
     name: item.name,
@@ -114,9 +116,7 @@ function InfraCharts({ infrastructureStats, overallStats }) {
                   cy="50%"
                   outerRadius="70%"
                   dataKey="value"
-                  label={({ name, percent }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
-                  }
+                  label={renderPieLabel}
                   labelLine={false}
                   fontSize={10}>
                   {pieData.map((entry, index) => (
@@ -148,4 +148,4 @@ InfraCharts.propTypes = {
   }).isRequired,
 };
 
-export default InfraCharts;
+export default React.memo(InfraCharts);

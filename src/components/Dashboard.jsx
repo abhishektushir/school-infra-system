@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import {
   AlertTriangle,
@@ -25,18 +25,28 @@ function Dashboard() {
   const [selectedState, setSelectedState] = useState("all");
 
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("schoolData") || "[]");
-    setSchoolData(data);
+    try {
+      const data = JSON.parse(localStorage.getItem("schoolData") || "[]");
+      setSchoolData(data);
+    } catch (e) {
+      console.error("Failed to pass school data");
+    }
   }, []);
-  const filteredData = schoolData.filter((school) => {
-    if (selectedState !== "all" && school.state !== selectedState) return false;
-    if (selectedDistrict !== "all" && school.district !== selectedDistrict)
-      return false;
-    return true;
-  });
-  const states = [...new Set(schoolData.map((school) => school.state))];
-  const districts =
-    selectedState === "all"
+  const filteredData = useMemo(() => {
+    return schoolData.filter((school) => {
+      if (selectedState !== "all" && school.state !== selectedState)
+        return false;
+      if (selectedDistrict !== "all" && school.district !== selectedDistrict)
+        return false;
+      return true;
+    });
+  }, [selectedDistrict, selectedState, schoolData]);
+
+  const states = useMemo(() => {
+    return [...new Set(schoolData.map((school) => school.state))];
+  }, [schoolData]);
+  const districts = useMemo(() => {
+    return selectedState === "all"
       ? [...new Set(schoolData.map((school) => school.district))]
       : [
           ...new Set(
@@ -45,140 +55,163 @@ function Dashboard() {
               .map((school) => school.district)
           ),
         ];
+  }, [selectedState, schoolData]);
+
   const totalSchools = filteredData.length;
 
-  const infrastructureStats = getInfrastructureStats(
-    infrastructureItems,
-    filteredData,
-    totalSchools
-  );
-  const overallStats = infrastructureItems.reduce(
-    (acc, item) => {
-      const stats = infrastructureStats[item.id];
-      acc.working += stats?.working || 0;
-      acc.needsRepair += stats?.needsRepair || 0;
-      acc.notAvailable += stats?.notAvailable || 0;
-      return acc;
-    },
-    { working: 0, needsRepair: 0, notAvailable: 0 }
-  );
+  const infrastructureStats = useMemo(() => {
+    return getInfrastructureStats(
+      infrastructureItems,
+      filteredData,
+      totalSchools
+    );
+  }, [infrastructureItems, filteredData, totalSchools]);
+  const overallStats = useMemo(() => {
+    return infrastructureItems.reduce(
+      (acc, item) => {
+        const stats = infrastructureStats[item.id];
+        acc.working += stats?.working || 0;
+        acc.needsRepair += stats?.needsRepair || 0;
+        acc.notAvailable += stats?.notAvailable || 0;
+        return acc;
+      },
+      { working: 0, needsRepair: 0, notAvailable: 0 }
+    );
+  }, [infrastructureItems, infrastructureStats]);
+
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <Card>
-        <CardHeader className="pb-4 sm:pb-6">
-          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-            <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
-            <div>
-              <div>Filters</div>
-              <div className="text-sm opacity-80">फिल्टर</div>
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1 space-y-2">
-            <Label className="text-sm sm:text-base block">State / राज्य</Label>
-            <Select value={selectedState} onValueChange={setSelectedState}>
-              <SelectTrigger className="h-12 sm:h-10">
-                <SelectValue placeholder="Select state" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All States</SelectItem>
-                {states.map((state) => (
-                  <SelectItem key={state} value={state}>
-                    {state}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+    <>
+      {totalSchools && totalSchools > 0 ? (
+        <div className="space-y-4 sm:space-y-6">
+          <Card>
+            <CardHeader className="pb-4 sm:pb-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
+                <div>
+                  <div>Filters</div>
+                  <div className="text-sm opacity-80">फिल्टर</div>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1 space-y-2">
+                <Label className="text-sm sm:text-base block">
+                  State / राज्य
+                </Label>
+                <Select value={selectedState} onValueChange={setSelectedState}>
+                  <SelectTrigger className="h-12 sm:h-10">
+                    <SelectValue placeholder="Select state" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All States</SelectItem>
+                    {states.map((state) => (
+                      <SelectItem key={state} value={state}>
+                        {state}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1 space-y-2">
+                <Label className="text-sm sm:text-base block">
+                  District / जिला
+                </Label>
+                <Select
+                  value={selectedDistrict}
+                  onValueChange={setSelectedDistrict}>
+                  <SelectTrigger className="h-12 sm:h-10">
+                    <SelectValue placeholder="Select District" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Districts</SelectItem>
+                    {districts.map((district) => (
+                      <SelectItem key={district} value={district}>
+                        {district}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <Card>
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+                  <School className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 flex-shrink-0" />
+                  <div className="text-center sm:text-left">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Total Schools Surveyed
+                    </p>
+                    <p className="text-xl sm:text-2xl">{totalSchools}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+                  <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 flex-shrink-0" />
+                  <div className="text-center sm:text-left">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Working Items
+                    </p>
+                    <p className="text-xl sm:text-2xl">
+                      {overallStats.working}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+                  <AlertTriangle className="h-6 w-6 sm:h-8 sm:w-8 text-orange-600 flex-shrink-0" />
+                  <div className="text-center sm:text-left">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Needs Repair
+                    </p>
+                    <p className="text-xl sm:text-2xl">
+                      {overallStats.needsRepair}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+                  <XCircle className="h-6 w-6 sm:h-8 sm:w-8 text-red-600 flex-shrink-0" />
+                  <div className="text-center sm:text-left">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Not Available
+                    </p>
+                    <p className="text-xl sm:text-2xl">
+                      {overallStats.notAvailable}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-          <div className="flex-1 space-y-2">
-            <Label className="text-sm sm:text-base block">
-              District / जिला
-            </Label>
-            <Select
-              value={selectedDistrict}
-              onValueChange={setSelectedDistrict}>
-              <SelectTrigger className="h-12 sm:h-10">
-                <SelectValue placeholder="Select District" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Districts</SelectItem>
-                {districts.map((district) => (
-                  <SelectItem key={district} value={district}>
-                    {district}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <Card>
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-              <School className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 flex-shrink-0" />
-              <div className="text-center sm:text-left">
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Total Schools Surveyed
-                </p>
-                <p className="text-xl sm:text-2xl">{totalSchools}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-              <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 flex-shrink-0" />
-              <div className="text-center sm:text-left">
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Working Items
-                </p>
-                <p className="text-xl sm:text-2xl">{overallStats.working}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-              <AlertTriangle className="h-6 w-6 sm:h-8 sm:w-8 text-orange-600 flex-shrink-0" />
-              <div className="text-center sm:text-left">
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Needs Repair
-                </p>
-                <p className="text-xl sm:text-2xl">
-                  {overallStats.needsRepair}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-              <XCircle className="h-6 w-6 sm:h-8 sm:w-8 text-red-600 flex-shrink-0" />
-              <div className="text-center sm:text-left">
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Not Available
-                </p>
-                <p className="text-xl sm:text-2xl">
-                  {overallStats.notAvailable}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      <InfraCharts
-        infrastructureStats={infrastructureStats}
-        overallStats={overallStats}
-      />
-    </div>
+          <InfraCharts
+            infrastructureStats={infrastructureStats}
+            overallStats={overallStats}
+          />
+        </div>
+      ) : (
+        <div className="text-center py-8 sm:py-12 px-4">
+          <School className="h-12 w-12 sm:h-16 sm:w-16 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-base sm:text-lg mb-2">No Data Available</h3>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Start collecting school infrastructure data to see analytics here.
+          </p>
+        </div>
+      )}
+    </>
   );
 }
 
