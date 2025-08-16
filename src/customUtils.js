@@ -41,3 +41,5 @@ export const getInfrastructureStatus = (formData,itemId) => {
     if (item.working === "no") return CONDITION.repair;
     return null;
   };
+
+  
