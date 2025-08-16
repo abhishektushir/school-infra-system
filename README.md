@@ -18,7 +18,7 @@ Built with **TailwindCSS** and **ShadCN UI components**, with clean forms for en
 ## How to install
 1. Git Clone
 ```
-git clone git@github.com:Tech-i-s/techis-wd-forum-django-react.git
+git clone https://github.com/abhishektushir/school-infra-system.git
 ```
 2. NPM packages
 ```
