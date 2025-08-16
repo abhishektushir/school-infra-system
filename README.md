@@ -13,7 +13,17 @@ Built with **TailwindCSS** and **ShadCN UI components**, with clean forms for en
 - **Lucide Icons** – modern SVG icons
 -
 
----
 
-## 📂 Project Structure
+## How to install
+1. Git Clone
+```
+git clone https://github.com/abhishektushir/school-infra-system.git
+```
+2. NPM packages
+```
+npm install
+npm run dev
+```
+# Open http://localhost:5173/
+
 
