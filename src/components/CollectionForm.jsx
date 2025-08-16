@@ -1,9 +1,12 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { School } from "lucide-react";
+import { AlertTriangle, Check, School, X } from "lucide-react";
 import { infrastructureItems } from "@/clone-data-config";
 import { Label } from "./ui/label";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { Badge } from "./ui/badge";
+import { CONDITION } from "@/constants";
+import { getInfrastructureStatus } from "@/customUtils";
 
 function CollectionForm({ formData, setFormData }) {
   const handleInfrastructureChange = (itemId, field, value) => {
@@ -17,6 +20,34 @@ function CollectionForm({ formData, setFormData }) {
         },
       },
     }));
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case CONDITION.working:
+        return (
+          <Badge className="bg-green-100 text-green-800 border-green-200">
+            <Check className="h-3 w-3 mr-1" />
+            {CONDITION.working}
+          </Badge>
+        );
+      case CONDITION.repair:
+        return (
+          <Badge className="bg-orange-100 text-orange-800 border-orange-200">
+            <AlertTriangle className="h-3 w-3 mr-1" />
+            {CONDITION.repair}
+          </Badge>
+        );
+      case CONDITION.availability:
+        return (
+          <Badge className="bg-red-100 text-red-800 border-red-200">
+            <X className="h-3 w-3 mr-1" />
+            {CONDITION.availability}
+          </Badge>
+        );
+      default:
+        return <Badge className="bg-red-500 text-white border-red-200">Pending</Badge>;
+    }
   };
   return (
     <Card>
@@ -45,8 +76,7 @@ function CollectionForm({ formData, setFormData }) {
                     </div>
                   </div>
                   <div className="ml-2">
-                    badge
-                    {/* enter badge here */}
+                    {getStatusBadge(getInfrastructureStatus(formData, item.id))}
                   </div>
                 </CardTitle>
               </CardHeader>

@@ -15,6 +15,7 @@ import { infrastructureItems, schoolGeoInfo } from "@/clone-data-config";
 import CollectionForm from "./CollectionForm";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
+import { TOASTMESSAGE } from "@/constants";
 function DataCollection() {
   const [formData, setFormData] = useState({
     schoolName: "",
@@ -23,7 +24,7 @@ function DataCollection() {
     block: "",
     infrastructure: {},
   });
-  console.log(formData);
+
   const handleSubmit = () => {
     if (
       !formData.schoolName ||
@@ -31,7 +32,7 @@ function DataCollection() {
       !formData.district ||
       !formData.block
     ) {
-      toast.error("Please fill in all school details");
+      toast.error(TOASTMESSAGE.error1);
       return;
     }
 
@@ -43,7 +44,7 @@ function DataCollection() {
     );
 
     if (!allItemsCompleted) {
-      toast.error("Please complete all infrastructure assessments");
+      toast.error(TOASTMESSAGE.error2);
       return;
     }
     const existingData = JSON.parse(localStorage.getItem("schoolData") || "[]");
@@ -58,7 +59,7 @@ function DataCollection() {
       JSON.stringify([...existingData, newEntry])
     );
 
-    toast.success("School data saved successfully!");
+    toast.success(TOASTMESSAGE.success);
 
     setFormData({
       schoolName: "",
@@ -103,6 +104,7 @@ function DataCollection() {
                     {geoInfo?.label}
                   </Label>
                   <Select
+                    value={formData[geoInfo.id]}
                     onValueChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
