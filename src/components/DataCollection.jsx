@@ -16,35 +16,34 @@ import CollectionForm from "./CollectionForm";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import { TOASTMESSAGE } from "@/constants";
+const IINITALFORM = {
+  schoolName: "",
+  state: "",
+  district: "",
+  block: "",
+  infrastructure: {},
+};
 function DataCollection() {
-  const [formData, setFormData] = useState({
-    schoolName: "",
-    state: "",
-    district: "",
-    block: "",
-    infrastructure: {},
-  });
-
-  const handleSubmit = () => {
-    if (
-      !formData.schoolName ||
-      !formData.state ||
-      !formData.district ||
-      !formData.block
-    ) {
-      toast.error(TOASTMESSAGE.error1);
-      return;
+  const [formData, setFormData] = useState(IINITALFORM);
+  const validateForm = (data) => {
+    if (!data.schoolName || !data.state || !data.district || !data.block) {
+      return TOASTMESSAGE.error1;
     }
-
     const allItemsCompleted = infrastructureItems.every(
       (item) =>
-        formData.infrastructure[item.id]?.available &&
-        (formData.infrastructure[item.id]?.available === "no" ||
-          formData.infrastructure[item.id]?.working)
+        data.infrastructure[item.id]?.available &&
+        (data.infrastructure[item.id]?.available === "no" ||
+          data.infrastructure[item.id]?.working)
     );
+    if (!allItemsCompleted) return TOASTMESSAGE.error2;
 
-    if (!allItemsCompleted) {
-      toast.error(TOASTMESSAGE.error2);
+    return null;
+  };
+
+  const handleSubmit = () => {
+    const errorMsg = validateForm(formData);
+    if (errorMsg) {
+      toast.error(errorMsg);
       return;
     }
     const existingData = JSON.parse(localStorage.getItem("schoolData") || "[]");
@@ -61,13 +60,7 @@ function DataCollection() {
 
     toast.success(TOASTMESSAGE.success);
 
-    setFormData({
-      schoolName: "",
-      district: "",
-      state: "",
-      block: "",
-      infrastructure: {},
-    });
+    setFormData(IINITALFORM);
   };
   return (
     <div className="space-y-4 sm:space-y-6">

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { AlertTriangle, Check, School, X } from "lucide-react";
 import { infrastructureItems } from "@/clone-data-config";
@@ -7,9 +7,37 @@ import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Badge } from "./ui/badge";
 import { CONDITION } from "@/constants";
 import { getInfrastructureStatus } from "@/customUtils";
-
+const getStatusBadge = (status) => {
+  switch (status) {
+    case CONDITION.working:
+      return (
+        <Badge className="bg-green-100 text-green-800 border-green-200">
+          <Check className="h-3 w-3 mr-1" />
+          {CONDITION.working}
+        </Badge>
+      );
+    case CONDITION.repair:
+      return (
+        <Badge className="bg-orange-100 text-orange-800 border-orange-200">
+          <AlertTriangle className="h-3 w-3 mr-1" />
+          {CONDITION.repair}
+        </Badge>
+      );
+    case CONDITION.availability:
+      return (
+        <Badge className="bg-red-100 text-red-800 border-red-200">
+          <X className="h-3 w-3 mr-1" />
+          {CONDITION.availability}
+        </Badge>
+      );
+    default:
+      return (
+        <Badge className="bg-red-500 text-white border-red-200">Pending</Badge>
+      );
+  }
+};
 function CollectionForm({ formData, setFormData }) {
-  const handleInfrastructureChange = (itemId, field, value) => {
+  const handleInfrastructureChange = useCallback((itemId, field, value) => {
     setFormData((prev) => ({
       ...prev,
       infrastructure: {
@@ -20,35 +48,8 @@ function CollectionForm({ formData, setFormData }) {
         },
       },
     }));
-  };
+  }, []);
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case CONDITION.working:
-        return (
-          <Badge className="bg-green-100 text-green-800 border-green-200">
-            <Check className="h-3 w-3 mr-1" />
-            {CONDITION.working}
-          </Badge>
-        );
-      case CONDITION.repair:
-        return (
-          <Badge className="bg-orange-100 text-orange-800 border-orange-200">
-            <AlertTriangle className="h-3 w-3 mr-1" />
-            {CONDITION.repair}
-          </Badge>
-        );
-      case CONDITION.availability:
-        return (
-          <Badge className="bg-red-100 text-red-800 border-red-200">
-            <X className="h-3 w-3 mr-1" />
-            {CONDITION.availability}
-          </Badge>
-        );
-      default:
-        return <Badge className="bg-red-500 text-white border-red-200">Pending</Badge>;
-    }
-  };
   return (
     <Card>
       <CardHeader className="pb-4 sm:pb-6">
@@ -165,4 +166,4 @@ function CollectionForm({ formData, setFormData }) {
   );
 }
 
-export default CollectionForm;
+export default React.memo(CollectionForm);
