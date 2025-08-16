@@ -3,18 +3,15 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import AppLayout from "./layouts/AppLayout";
 import Home from "./pages/Home";
 
-
 // creating routes for future usecases
 const router = createBrowserRouter([
   {
     element: <AppLayout />,
-    errorElement: "404",
     children: [
       {
         path: "/",
         element: <Home />,
       },
-      
     ],
   },
 ]);
