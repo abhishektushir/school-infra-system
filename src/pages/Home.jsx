@@ -1,7 +1,7 @@
+import DataCollection from "@/components/DataCollection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, ClipboardList } from "lucide-react";
 import React, { lazy, Suspense, useState } from "react";
-const DataCollection = lazy(() => import("../components/DataCollection"));
 
 const Dashboard = lazy(() => import("../components/Dashboard"));
 function Home() {
@@ -28,12 +28,13 @@ function Home() {
           </div>
         </TabsTrigger>
       </TabsList>
+
+      {activeTab === "collection" && (
+        <TabsContent value="collection">
+          <DataCollection />
+        </TabsContent>
+      )}
       <Suspense fallback={<div>Loading...</div>}>
-        {activeTab === "collection" && (
-          <TabsContent value="collection">
-            <DataCollection />
-          </TabsContent>
-        )}
         {activeTab === "dashboard" && (
           <TabsContent value="dashboard">
             <Dashboard />

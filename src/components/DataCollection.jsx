@@ -1,30 +1,23 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { MapPin, Save } from "lucide-react";
+import { MapPin, Save, School } from "lucide-react";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
 import { infrastructureItems, schoolGeoInfo } from "@/clone-data-config";
-import CollectionForm from "./CollectionForm";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import { TOASTMESSAGE } from "@/constants";
-const IINITALFORM = {
-  schoolName: "",
-  state: "",
-  district: "",
-  block: "",
-  infrastructure: {},
-};
+import SchoolGeoForm from "./SchoolGeoForm";
+import InfrastructureItems from "./InfrastructureItems";
+
 function DataCollection() {
-  const [formData, setFormData] = useState(IINITALFORM);
+  const [schoolGeoFrom, setSchoolGeoForm] = useState({
+    schoolName: "",
+    state: "",
+    district: "",
+    block: "",
+  });
+  const [infrastructureData, setInfrastructureData] = useState({});
   const validateForm = (data) => {
     if (!data.schoolName || !data.state || !data.district || !data.block) {
       return TOASTMESSAGE.error1;
@@ -39,28 +32,56 @@ function DataCollection() {
 
     return null;
   };
+  const handleSchoolFormChange = useCallback((field, value) => {
+    setSchoolGeoForm((prev) => {
+      return { ...prev, [field]: value };
+    });
+  }, []);
+  const handleInfrastructureChange = useCallback((itemId, field, value) => {
+    setInfrastructureData((prev) => {
+      return {
+        ...prev,
+        [itemId]: {
+          ...prev[itemId],
+          [field]: value,
+        },
+      };
+    });
+  }, []);
 
   const handleSubmit = () => {
+    const formData = {
+      ...schoolGeoFrom,
+      infrastructure: { ...infrastructureData },
+    };
     const errorMsg = validateForm(formData);
     if (errorMsg) {
       toast.error(errorMsg);
       return;
     }
-    const existingData = JSON.parse(localStorage.getItem("schoolData") || "[]");
-    const newEntry = {
-      ...formData,
-      id: Date.now(),
-      timestamp: new Date().toISOString(),
-      submittedBy: "Self Help Group Member",
-    };
-    localStorage.setItem(
-      "schoolData",
-      JSON.stringify([...existingData, newEntry])
-    );
-
+    setTimeout(() => {
+      const existingData = JSON.parse(
+        localStorage.getItem("schoolData") || "[]"
+      );
+      const newEntry = {
+        ...formData,
+        id: Date.now(),
+        timestamp: new Date().toISOString(),
+        submittedBy: "Self Help Group Member",
+      };
+      localStorage.setItem(
+        "schoolData",
+        JSON.stringify([...existingData, newEntry])
+      );
+    }, 0);
     toast.success(TOASTMESSAGE.success);
-
-    setFormData(IINITALFORM);
+    setSchoolGeoForm({
+      schoolName: "",
+      state: "",
+      district: "",
+      block: "",
+    });
+    setInfrastructureData({});
   };
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -81,9 +102,9 @@ function DataCollection() {
             </Label>
             <Input
               id="schoolName"
-              value={formData.schoolName}
+              value={schoolGeoFrom.schoolName}
               onChange={(e) =>
-                setFormData((prev) => ({ ...prev, schoolName: e.target.value }))
+                handleSchoolFormChange("schoolName", e.target.value)
               }
               placeholder="Enter school name"
               className="h-12 sm:h-10 text-base"
@@ -92,39 +113,38 @@ function DataCollection() {
           {schoolGeoInfo.length > 0 &&
             schoolGeoInfo.map((geoInfo, idx) => {
               return (
-                <div className="space-y-2" key={geoInfo?.id}>
-                  <Label className="text-sm sm:text-base">
-                    {geoInfo?.label}
-                  </Label>
-                  <Select
-                    value={formData[geoInfo.id]}
-                    onValueChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        [geoInfo?.id]: e,
-                      }))
-                    }>
-                    <SelectTrigger className="h-12 sm:h-10 text-base">
-                      <SelectValue placeholder={`Select ${geoInfo?.label}`} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {geoInfo?.value.map((geoInfoVal) => {
-                          return (
-                            <SelectItem key={geoInfoVal} value={geoInfoVal}>
-                              {geoInfoVal}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <SchoolGeoForm
+                  geoInfo={geoInfo}
+                  key={geoInfo.id}
+                  handleSchoolFormChange={handleSchoolFormChange}
+                />
               );
             })}
         </CardContent>
       </Card>
-      <CollectionForm formData={formData} setFormData={setFormData} />
+      <Card>
+        <CardHeader className="pb-4 sm:pb-6">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <School className="h-4 w-4 sm:h-5 sm:w-5" />
+            <div>
+              <div>Infrastructure Assessment</div>
+              <div className="text-sm opacity-80">अवसंरचना मूल्यांकन</div>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
+            {infrastructureItems.map((item) => (
+              <InfrastructureItems
+                infrastructureData={infrastructureData[item.id]}
+                onChange={handleInfrastructureChange}
+                item={item}
+                key={item.id}
+              />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
       <div className="flex justify-center pb-4 sm:pb-0">
         <Button
           onClick={handleSubmit}

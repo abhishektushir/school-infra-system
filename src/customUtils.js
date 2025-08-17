@@ -32,8 +32,8 @@ export const getInfrastructureStats = (
   return stats;
 };
 
-export const getInfrastructureStatus = (formData, itemId) => {
-  const item = formData.infrastructure[itemId];
+export const getInfrastructureStatus = ( itemId) => {
+  const item = itemId;
   if (!item?.available) return null;
   if (item.available === "no") return CONDITION.availability;
   if (item.working === "yes") return CONDITION.working;
